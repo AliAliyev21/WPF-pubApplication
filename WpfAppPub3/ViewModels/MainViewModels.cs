@@ -14,6 +14,15 @@ namespace WpfAppPub3.ViewModels
     {
         private ObservableCollection<Beer> allBeers;
 
+        private ObservableCollection<Payment> allPayments;
+
+        public ObservableCollection<Payment> AllPayments
+        {
+            get { return allPayments; }
+            set { allPayments = value; OnPropertyChanged(); }
+        }
+
+
         public ObservableCollection<Beer> AllBeers
         {
             get { return allBeers; }
@@ -88,6 +97,7 @@ namespace WpfAppPub3.ViewModels
             };
 
             SelectedBeer = AllBeers[0];
+            AllPayments = new ObservableCollection<Payment>();
 
             IncreaseCommand = new RelayCommand((obj) =>
             {
@@ -106,23 +116,27 @@ namespace WpfAppPub3.ViewModels
 
             BuyCommand = new RelayCommand((obj) =>
             {
-                MessageBox.Show($"You bought {SelectedBeerCount} {SelectedBeerName} for a total of {SelectedBeerTotal:C2}");               
+                SelectedBeerName = SelectedBeer.Name; // Set the SelectedBeerName
+                var payment = new Payment
+                {
+                    Name = SelectedBeerName,
+                    Price = SelectedBeer.Price,
+                    Volume = SelectedBeer.Volume,
+                    Count = SelectedBeerCount,
+                };
+                AllPayments.Add(payment);
+                MessageBox.Show($"You bought {SelectedBeerCount} {SelectedBeerName} for a total of {SelectedBeerTotal:C2}");
             });
 
             ShowCommand = new RelayCommand((obj) =>
             {
-                if (SelectedBeer != null)
-                {
-                    ShowHistroyModels showHistoryViewModel = new ShowHistroyModels();
-                    showHistoryViewModel.PurchaseHistory.Add(SelectedBeer);
-                    ShowHistory showHistoryWindow = new ShowHistory();
-                    showHistoryWindow.DataContext = showHistoryViewModel;
-                    showHistoryWindow.Show();
-                }
-                else
-                {
-                    MessageBox.Show("Please select a beer before buying", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+
+                var vm = new ShowHistroyModels();
+                vm.AllPayments = AllPayments;
+                var view = new ShowHistory();
+
+                view.DataContext = vm;
+                view.Show();
             });
 
             ResetCommand = new RelayCommand((obj) =>
